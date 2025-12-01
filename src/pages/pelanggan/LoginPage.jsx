@@ -15,27 +15,41 @@ const LoginPage = () => {
     setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleLogin = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    if (!form.email || !form.password)
-      return toast.error("Email dan password wajib diisi");
+  if (!form.email || !form.password)
+    return toast.error("Email dan password wajib diisi");
 
-    try {
-      const data = await apiFetch("/pelanggan/login", {
-        method: "POST",
-        body: JSON.stringify(form),
-      });
+  try {
+    // Tentukan API berdasarkan email
+    let endpoint = "/pelanggan/login";
+    let role = "pelanggan";
 
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("role", "pelanggan");
-      localStorage.setItem("user", JSON.stringify(data.data));
-
-      toast.success("Login berhasil!");
-      navigate("/home");
-    } catch (err) {
-      toast.error(err.message || "Login gagal");
+    if (form.email.includes("@admin")) {
+      endpoint = "/admin/login";
+      role = "admin";
     }
-  };
+
+    const data = await apiFetch(endpoint, {
+      method: "POST",
+      body: JSON.stringify(form),
+      headers: { "Content-Type": "application/json" },
+    });
+
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("role", role);
+    localStorage.setItem("user", JSON.stringify(data.data));
+
+    toast.success(`Login ${role} berhasil!`);
+
+    if (role === "admin") navigate("/admin/dashboard");
+    else navigate("/home");
+
+  } catch (err) {
+    toast.error(err.body?.message || "Login gagal!");
+  }
+};
+
 
   return (
     <div className="login-bg">
@@ -54,6 +68,7 @@ const LoginPage = () => {
               value={form.email}
               onChange={handleChange}
               className="login-input"
+              autoComplete="email"
             />
           </FloatingLabel>
 
@@ -64,6 +79,7 @@ const LoginPage = () => {
               value={form.password}
               onChange={handleChange}
               className="login-input"
+              autoComplete="current-password"
             />
           </FloatingLabel>
 
