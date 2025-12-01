@@ -29,23 +29,29 @@ const AdminPesananPage = () => {
     }
   };
 
-  const updateStatus = async (id, status) => {
-    try {
-      await apiFetch("/pemesanan/update", {
-  method: "POST",
-  body: JSON.stringify({
-    id_pemesanan: id,
-    status_pemesanan: status,
-  }),
-});
+const updateStatus = async (id, status) => {
+  const booking = bookings.find(b => b.id_pemesanan === id);
 
+  try {
+    await apiFetch("/pemesanan/update", {
+      method: "POST",
+      body: JSON.stringify({
+        id_pemesanan: id,
+        id_layanan: booking.id_layanan,
+        id_pegawai: booking.id_pegawai,
+        tanggal_booking: booking.tanggal_booking,
+        jam_booking: booking.jam_booking,
+        status_pemesanan: status,
+      }),
+    });
 
-      toast.success("Status berhasil diperbarui");
-      loadBookings();
-    } catch {
-      toast.error("Gagal update status");
-    }
-  };
+    toast.success("Status berhasil diperbarui");
+    loadBookings();
+  } catch (err) {
+    toast.error(err.body?.message || "Gagal update status");
+  }
+};
+
 
   return (
     <>
